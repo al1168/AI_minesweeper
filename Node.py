@@ -1,103 +1,72 @@
 import pygame
 
-FIRE = (255, 0, 0)
-TARGET = (0, 255, 0)
-START = (0, 255, 0)
+FLAG = (255, 0, 0)
+SAFE = (0, 255, 0)
 AGENT = (255, 255, 0)
-OPEN = (255, 255, 255)
-BLOCKED = (0, 0, 0)
-PATH = (128, 0, 128)
+HIDDEN = (67, 70, 75)
 EXPLORED = (255, 165, 0)
-GREY = (128, 128, 128)
-
-
+BOMB = (255, 165, 0)
+GREY = (128,128,128)
 class Cell:
     def __init__(self, row, col, width, total_rows):
+        self.value = 0
         self.row = row
         self.col = col
         self.x = col * width
         self.y = row * width
-        self.state = OPEN
-        self.is_closed = False
         self.neighbors = []
         self.width = width
+        self.state = HIDDEN
         self.total_rows = total_rows
-        self.danger_value = 0
-    def get_danger_neighbor(self):
-        return self.danger_value, self
-    def get_danger_value(self):
-        return self.danger_value
+
+    def set_bomb(self):
+        self.state = BOMB
 
     def get_pos(self):
         return self.row, self.col
-
-    def get_state(self):
-        return self.state
-
-    def is_blocked(self):
-        return self.state == BLOCKED
-
-    def is_start(self):
-        return self.state == START
-
-    def is_target(self):
-        return self.state == TARGET
-
-    def is_on_fire(self):
-        return self.state == FIRE
-
-    def is_closed(self):
-        return self.is_closed == True
-
-    def set_danger_value(self, x):
-        self.danger_value = x
-
-    def set_closed(self):
-        self.is_closed = True
-
-    def set_start(self):
-        self.state = START
-
-    def set_blocked(self):
-        self.state = BLOCKED
-
-    def set_target(self):
-        self.state = TARGET
-
-    def set_path(self):
-        self.state = PATH
-
-    def set_on_fire(self):
-        self.state = FIRE
 
     def set_as_agent(self):
         self.state = AGENT
 
     def set_explored(self):
         self.state = EXPLORED
-
+    def incr_value(self):
+        self.value += 1
     def draw(self, win):
         pygame.draw.rect(win, self.state, (self.x, self.y, self.width, self.width))
 
     def update_neighbors(self, grid):
         self.neighbors = []
-        if self.row < self.total_rows - 1 and not grid[self.row + 1][self.col].is_blocked():  # DOWN
+        if self.row < self.total_rows - 1:  # DOWN
             self.neighbors.append(grid[self.row + 1][self.col])
 
-        if self.row > 0 and not grid[self.row - 1][self.col].is_blocked():  # UP
+        if self.row > 0:  # UP
             self.neighbors.append(grid[self.row - 1][self.col])
 
-        if self.col < self.total_rows - 1 and not grid[self.row][self.col + 1].is_blocked():  # RIGHT
+        if self.col < self.total_rows - 1:  # RIGHT
             self.neighbors.append(grid[self.row][self.col + 1])
 
-        if self.col > 0 and not grid[self.row][self.col - 1].is_blocked():  # LEFT
+        if self.col > 0:  # LEFT
             self.neighbors.append(grid[self.row][self.col - 1])
+
+        if self.row > 0 and self.col > 0:  # topLeft Diagonal
+            self.neighbors.append(grid[self.row - 1][self.col - 1])
+
+        if self.row < self.total_rows - 1 and self.col > 0:  # botleft
+            self.neighbors.append(grid[self.row + 1][self.col - 1])
+
+        if self.row > 0 and self.col < self.total_row - 1:  # top right
+            self.neighbors.append(grid[self.row - 1][self.col + 1])
+
+        if self.row < self.total_rows - 1 and self.col < self.total_rows - 1:  # bottom right
+            self.neighbors.append(grid[self.row + 1][self.col + 1])
 
     def get_neighbors(self):
         return self.neighbors
 
     def __lt__(self, other):
         return False
+
 
 class Agent:
     def __init__(self, pos, row, col):
