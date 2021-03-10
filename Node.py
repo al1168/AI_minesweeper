@@ -1,37 +1,74 @@
 import pygame
-
-FLAG = (255, 0, 0)
-SAFE = (0, 255, 0)
-AGENT = (255, 255, 0)
+'''
+pygame.init()
+font=pygame.font.SysFont('arial', 40)
+text=font.render('0', True, (0, 0, 0))
+'''
 HIDDEN = (67, 70, 75)
-EXPLORED = (255, 165, 0)
-BOMB = (255, 165, 0)
+CLEAR = (255, 255, 255)
+BOMB = (255, 0, 0)
+HIDDEN = (67, 70, 75)
+#CLEAR = (0, 255, 0)
+#AGENT = (255, 255, 0)
+#HIDDEN = (67, 70, 75)
+#EXPLORED = (255, 165, 0)
+#FREE = (255, 165, 0)
 GREY = (128,128,128)
 class Cell:
     def __init__(self, row, col, width, total_rows):
-        self.value = 0
+        self.clue = 0
         self.row = row
         self.col = col
         self.x = col * width
         self.y = row * width
         self.neighbors = []
         self.width = width
-        self.state = HIDDEN
+        self.state = CLEAR
+        self.safe = True
         self.total_rows = total_rows
+
+    def get_state(self):
+        return self.state
 
     def set_bomb(self):
         self.state = BOMB
+        self.safe = False
+
+    def flag_as_bomb(self):
+        self.state = BOMB
+    def flag_as_clear(self):
+        self.state = CLEAR
+
 
     def get_pos(self):
         return self.row, self.col
 
-    def set_as_agent(self):
-        self.state = AGENT
+    def set_clear(self):
+        self.state = CLEAR
 
-    def set_explored(self):
-        self.state = EXPLORED
+    #def set_explored(self):
+    #   self.state = EXPLORED
+
     def incr_value(self):
-        self.value += 1
+        self.clue += 1
+
+    def set_clue(self, val):
+        self.clue = val
+
+    def get_clue(self):
+        return self.clue
+
+    def set_hidden(self):
+        self.state = HIDDEN
+    #calculate the clue for the cell
+    def calc_clue(self):
+        nei = self.get_neighbors()
+        c = 0
+        for cell in nei:
+            if cell.get_state() == BOMB:
+                c += 1
+        self.clue = c
+
     def draw(self, win):
         pygame.draw.rect(win, self.state, (self.x, self.y, self.width, self.width))
 
@@ -52,10 +89,10 @@ class Cell:
         if self.row > 0 and self.col > 0:  # topLeft Diagonal
             self.neighbors.append(grid[self.row - 1][self.col - 1])
 
-        if self.row < self.total_rows - 1 and self.col > 0:  # botleft
+        if self.row < self.total_rows - 1 and self.col > 0:  # bottom left
             self.neighbors.append(grid[self.row + 1][self.col - 1])
 
-        if self.row > 0 and self.col < self.total_row - 1:  # top right
+        if self.row > 0 and self.col < self.total_rows - 1:  # top right
             self.neighbors.append(grid[self.row - 1][self.col + 1])
 
         if self.row < self.total_rows - 1 and self.col < self.total_rows - 1:  # bottom right
@@ -63,6 +100,8 @@ class Cell:
 
     def get_neighbors(self):
         return self.neighbors
+    def set_neighbors(self, lst):
+        self.neighbors = lst
 
     def __lt__(self, other):
         return False
