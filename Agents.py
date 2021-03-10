@@ -10,8 +10,8 @@ def base_agent(game_grid):
         for cell in row:
             unrevealed_lst.append(cell)
 
-
-    while len(unrevealed_lst) != len(revealed_dict):
+    count = 5
+    while count != 0:
         base_agent_query(revealed_dict, currCell)
         base_agent_query(revealed_dict, currCell)
         for item in unrevealed_lst:
@@ -21,14 +21,16 @@ def base_agent(game_grid):
             break
         randCell = random.choice(unrevealed_lst)
         currCell = randCell
+        count -= 1
 
-
+    print(revealed_dict)
 
 def base_agent_query(revealed_dict, cell):
-    cell.set_clear()
     if cell.get_state() == Node.BOMB:
+        cell.flag_as_bomb()
         revealed_dict[cell] = 1
     elif cell.get_state() == Node.CLEAR:
+        cell.flag_as_clear()
         revealed_dict[cell] = 0
 
 
@@ -42,7 +44,7 @@ def base_agent_query(revealed_dict, cell):
             cleared_nei_lst.append(cell)
     for cell in neighbors:
         if cell in revealed_dict and revealed_dict[cell] == 1:
-                revealed_mine_lit.append(cell)
+            revealed_mine_lit.append(cell)
     for cell in neighbors:
         if cell not in revealed_dict:
             hidden_nei_lst.append(cell)
