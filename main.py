@@ -58,6 +58,7 @@ def printgrid(grid, rows):
 def create_grid(rows, width):
     grid = []
     gap = width // rows
+    dim = rows
     for i in range(rows):
         grid.append([])
         for j in range(rows):
@@ -95,4 +96,15 @@ if __name__ == '__main__':
     num_bombs = float(sys.argv[2])
     main(WIN, WIDTH, dimension, num_bombs)
 
+def logic(cell):
+#     cell = cell we want to determine if safe or naw
 
+def click_safe_cells(safelist):
+    for cell in safelist:
+#         click cell
+#         generate equations
+#       add into equations_list
+        pass
+def query_least_involved():
+
+    pass

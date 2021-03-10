@@ -6,9 +6,12 @@ AGENT = (255, 255, 0)
 HIDDEN = (67, 70, 75)
 EXPLORED = (255, 165, 0)
 BOMB = (255, 165, 0)
-GREY = (128,128,128)
+GREY = (128, 128, 128)
+
+
 class Cell:
     def __init__(self, row, col, width, total_rows):
+        self.id = total_rows*row + col
         self.value = 0
         self.row = row
         self.col = col
@@ -30,8 +33,10 @@ class Cell:
 
     def set_explored(self):
         self.state = EXPLORED
+
     def incr_value(self):
         self.value += 1
+
     def draw(self, win):
         pygame.draw.rect(win, self.state, (self.x, self.y, self.width, self.width))
 
@@ -79,3 +84,15 @@ class Agent:
 
     def set_pos(self, position):
         self.pos = position
+
+
+class Equation:
+    def __init__(self, list, value):
+        self.list = list
+        self.value = value
+
+    def getValue(self):
+        return self.value
+
+    def getlist(self):
+        return self.list
