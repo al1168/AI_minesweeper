@@ -124,8 +124,8 @@ def main(win, width, dimension, num_bombs):
 
                 #keyboard 'a' to start query using the basic agent
                 if event.key == ord('a'):
-                    print("actual_grid: ")
-                    print(actual_grid[0][0].get_neighbors())
+                    #print("actual_grid: ")
+                    #print(actual_grid[0][0].get_neighbors())
                     Agents.base_agent(game_grid)
 
     pygame.quit()

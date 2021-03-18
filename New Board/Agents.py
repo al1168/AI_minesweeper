@@ -1,15 +1,30 @@
 import Node
 import random
+import time
 
 def base_agent(game_grid):
-    revealed_dict = {}
+    revealed_dict = dict()
     currCell = game_grid[0][0]
-    print(revealed_dict)
-    unrevealed_lst = []
+    cell_lst = []
     for row in game_grid:
         for cell in row:
-            unrevealed_lst.append(cell)
+            cell_lst.append(cell)
 
+    '''
+    base_agent_query(revealed_dict, currCell)
+    cell_lst.remove(currCell)
+
+    while len(cell_lst) != 0:
+        randCell = random.choice(cell_lst)
+        if randCell not in revealed_dict:
+            cell_lst.remove(randCell)
+            base_agent_query(revealed_dict, randCell)
+            #print(len(revealed_dict))
+            print(randCell)
+            print(len(cell_lst))
+            print(randCell.get_pos())
+
+    '''
     base_agent_query(revealed_dict, currCell)
     step = 0
     for row in game_grid:
@@ -17,9 +32,15 @@ def base_agent(game_grid):
             if cell not in revealed_dict or revealed_dict[cell] == 0:
                 step += 1
                 base_agent_query(revealed_dict, cell)
-                #time.sleep(.3000)
+                time.sleep(.3000)
                 print(step)
+                #print(cell.get_pos())
 
+                #print("step count: "+str(step))
+    #print(calc_score(game_grid, revealed_dict))
+
+    #print("revealed dict")
+    #print(revealed_dict)
 
 def base_agent_query(revealed_dict, cell):
     if not cell.is_safe():
