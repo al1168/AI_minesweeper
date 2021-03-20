@@ -3,15 +3,13 @@ import Agents
 import sys
 import pygame
 import random
-
+import copy
 
 pygame.display.set_caption("CS440 Proj2")
 WIDTH = 800
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
 pygame.display.set_caption("Mine Sweeper")
 #pygame.init()
-def printcell(cell):
-    print('[' + str(cell.row) + '] [' + str(cell.col) + ']')
 
 def calc_clues(grid):
     for row in grid:
@@ -79,7 +77,6 @@ def printgrid(grid, rows):
 def create_grid(rows, width):
     grid = []
     gap = width // rows
-    dim = rows
     for i in range(rows):
         grid.append([])
         for j in range(rows):
@@ -96,7 +93,6 @@ def generate_game_grid(grid, dim, totalbombs):
         if cell.get_state() == Node.BOMB or cell == grid[0][0]:
             continue
         cell.set_bomb()
-        cell.set_reset()
         curr_num_bomb += 1
         #update_bomb_clues(grid,cell)
 
@@ -106,27 +102,17 @@ def start_game_grid(game_grid):
             cell.set_hidden()
     return game_grid
 
-def reset(grid):
-    for row in grid:
-        for cell in row:
-            if cell.reset != 0:
-                cell.set_bomb()
-                continue
-            cell.state = Node.CLEAR
-
 def main(win, width, dimension, num_bombs):
     dim = dimension
     actual_grid = create_grid(dim,width)
-    print('helo?????????????????')
+
     #printgrid(grid,len(grid))
     generate_game_grid(actual_grid, dim, num_bombs)
     calc_clues(actual_grid)
-    # printgrid(actual_grid,len(actual_grid))
+    printgrid(actual_grid,len(actual_grid))
 
     game_grid = actual_grid
     run = True
-    # Agents.driver(game_grid, num_bombs, dim, lambda: draw(win, actual_grid, dim, width))
-
     while run:
         draw(win, actual_grid, dim, width)
         for event in pygame.event.get():
@@ -138,19 +124,16 @@ def main(win, width, dimension, num_bombs):
 
                 #keyboard 'a' to start query using the basic agent
                 if event.key == ord('a'):
-                    Agents.driver2(game_grid, num_bombs, dim, lambda: draw(win, actual_grid, dim, width))
-                if event.key == pygame.K_RETURN:
-                    reset(game_grid)
+                    #print("actual_grid: ")
+                    #print(actual_grid[0][0].get_neighbors())
+                    Agents.base_agent(game_grid)
+
     pygame.quit()
 
 if __name__ == '__main__':
-    # dimension = int(sys.argv[1])
-    # num_bombs = float(sys.argv[2])
-    dimension = 10
-    num_bombs = 9
+    dimension = int(sys.argv[1])
+    num_bombs = float(sys.argv[2])
     if num_bombs > dimension * dimension:
         print("Too many bombs")
         exit()
     main(WIN, WIDTH, dimension, num_bombs)
-
-

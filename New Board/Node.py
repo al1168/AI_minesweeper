@@ -6,13 +6,9 @@ font=pygame.font.SysFont('arial', 40)
 text=font.render('0', True, (0, 0, 0))
 '''
 number_font = pygame.font.SysFont( None, 32 )
+HIDDEN = (67, 70, 75)
 CLEAR = (255, 255, 255)
 BOMB = (255, 0, 0)
-HIDDEN = (67, 70, 75)
-FREE = (255, 165, 0)
-EXPLORED = (255, 165, 0)
-BOMB_MARK = (255, 165, 0)
-GREY = (128, 128, 128)
 CLICKED = (0, 255, 0)
 
 #HIDDEN = (67, 70, 75)
@@ -22,16 +18,8 @@ CLICKED = (0, 255, 0)
 #EXPLORED = (255, 165, 0)
 #FREE = (255, 165, 0)
 GREY = (128,128,128)
-
 class Cell:
     def __init__(self, row, col, width, total_rows):
-        self.id = total_rows * row + col
-        self.value = 0
-
-
-class Cell:
-    def __init__(self, row, col, width, total_rows):
-        self.id = total_rows*row + col
         self.clue = 0
         self.row = row
         self.col = col
@@ -42,11 +30,6 @@ class Cell:
         self.state = CLEAR
         self.safe = True
         self.total_rows = total_rows
-        self.reset = 0
-    def set_reset(self):
-        self.reset = 1
-    def get_id(self):
-        return self.id
 
     def is_safe(self):
         return self.safe
@@ -59,10 +42,10 @@ class Cell:
         self.safe = False
 
     def flag_as_bomb(self):
-        self.state = BOMB_MARK
-
+        self.state = BOMB
     def flag_as_clear(self):
         self.state = CLEAR
+
 
     def get_pos(self):
         return self.row, self.col
@@ -70,11 +53,8 @@ class Cell:
     def set_clear(self):
         self.state = CLEAR
 
-    # def set_explored(self):
+    #def set_explored(self):
     #   self.state = EXPLORED
-
-    def set_explored(self):
-        self.state = EXPLORED
 
     def incr_value(self):
         self.clue += 1
@@ -87,8 +67,7 @@ class Cell:
 
     def set_hidden(self):
         self.state = HIDDEN
-
-    # calculate the clue for the cell
+    #calculate the clue for the cell
     def calc_clue(self):
         nei = self.get_neighbors()
         c = 0
@@ -153,7 +132,6 @@ class Cell:
 
     def get_neighbors(self):
         return self.neighbors
-
     def set_neighbors(self, lst):
         self.neighbors = lst
 
@@ -171,21 +149,4 @@ class Agent:
         return self.pos
 
     def set_pos(self, position):
-
         self.pos = position
-
-
-class Equation:
-    def __init__(self, list, value):
-        self.list = list
-        self.value = value
-
-    def getValue(self):
-        return self.value
-
-    def getlist(self):
-        return self.list
-
-    def setlist(self, newlist):
-        self.list = newlist
-
