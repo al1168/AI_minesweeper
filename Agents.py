@@ -18,6 +18,8 @@ class Equation:
 def base_agent(game_grid, draw):
     safe_cell_lst = []
     revealed_dict = {}
+    explored = []
+    hidden_cells = []
     currCell = game_grid[0][0]
     print(revealed_dict)
     unrevealed_lst = []
@@ -27,8 +29,8 @@ def base_agent(game_grid, draw):
             unrevealed_lst.append(cell)
     count = 5
     while count != 0:
-        base_agent_query(revealed_dict, currCell, draw, revealed_bombs, safe_cell_lst)
-        base_agent_query(revealed_dict, currCell, draw, revealed_bombs, safe_cell_lst)
+        base_agent_query(revealed_dict, currCell, draw, revealed_bombs, safe_cell_lst,explored,hidden_cells)
+        base_agent_query(revealed_dict, currCell, draw, revealed_bombs, safe_cell_lst,explored,hidden_cells)
         for item in unrevealed_lst:
             if item in revealed_dict:
                 unrevealed_lst.remove(item)

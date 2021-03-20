@@ -139,6 +139,8 @@ def main(win, width, dimension, num_bombs):
                 #keyboard 'a' to start query using the basic agent
                 if event.key == ord('a'):
                     Agents.driver2(game_grid, num_bombs, dim, lambda: draw(win, actual_grid, dim, width))
+                if event.key == ord('b'):
+                    Agents.base_agent(game_grid,lambda: draw(win, actual_grid, dim, width))
                 if event.key == pygame.K_RETURN:
                     reset(game_grid)
     pygame.quit()
