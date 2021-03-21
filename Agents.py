@@ -35,11 +35,13 @@ def base_agent(game_grid, draw):
     while len(unrevealed_lst) != 0:
         randCell = random.choice(unrevealed_lst)
         if randCell not in revealed_dict:
-            print(step)
+            print("Query number: "+str(step))
             basic_agent_query(revealed_dict, randCell, draw, unrevealed_lst)
             step += 1
     print("Post Loop")
     print(len(unrevealed_lst))
+
+    print(calc_score(game_grid, revealed_dict))
     # print(revealed_dict)
     # bomb_list
     #print("bomb list:")
