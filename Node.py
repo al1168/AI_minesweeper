@@ -59,7 +59,7 @@ class Cell:
         self.safe = False
 
     def flag_as_bomb(self):
-        self.state = BOMB_MARK
+        self.state = BOMB
 
     def flag_as_clear(self):
         self.state = CLEAR

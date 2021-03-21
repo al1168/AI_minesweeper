@@ -27,23 +27,85 @@ def base_agent(game_grid, draw):
     for row in game_grid:
         for cell in row:
             unrevealed_lst.append(cell)
-    count = 5
-    while count != 0:
-        base_agent_query(revealed_dict, currCell, draw, revealed_bombs, safe_cell_lst,explored,hidden_cells)
-        base_agent_query(revealed_dict, currCell, draw, revealed_bombs, safe_cell_lst,explored,hidden_cells)
-        for item in unrevealed_lst:
-            if item in revealed_dict:
-                unrevealed_lst.remove(item)
-        if unrevealed_lst == []:
-            break
-        randCell = random.choice(unrevealed_lst)
-        currCell = randCell
-        count -= 1
 
+    print("Pre Loop")
+    print(len(unrevealed_lst))
+    step = 1
+    basic_agent_query(revealed_dict, currCell, draw, unrevealed_lst)
+    while len(unrevealed_lst) != 0:
+        randCell = random.choice(unrevealed_lst)
+        if randCell not in revealed_dict:
+            print(step)
+            basic_agent_query(revealed_dict, randCell, draw, unrevealed_lst)
+            step += 1
+    print("Post Loop")
+    print(len(unrevealed_lst))
     # print(revealed_dict)
     # bomb_list
-    print("bomb list:")
-    print(revealed_bombs)
+    #print("bomb list:")
+    #print(revealed_bombs)
+
+
+def basic_agent_query(revealed_dict, cell, draw , unrevealed_list):
+    if not cell.is_safe():
+        cell.flag_as_bomb()
+        revealed_dict[cell] = 1
+        if cell in unrevealed_list:
+            unrevealed_list.remove(cell)
+        print("Stepped on bomb")
+        draw()
+    elif cell.is_safe():
+        cell.flag_as_clear()
+        revealed_dict[cell] = 0
+        if cell in unrevealed_list:
+            unrevealed_list.remove(cell)
+        draw()
+
+    clue = cell.get_clue()
+    neighbors = cell.get_neighbors()
+    revealed_cleared_nei_lst = []
+    hidden_nei_lst = []
+    revealed_mine_nei_lst = []
+    for c in neighbors:
+        if c in revealed_dict:
+            if revealed_dict[c] == 0:
+                revealed_cleared_nei_lst.append(c)
+            elif revealed_dict[c] == 1:
+                revealed_mine_nei_lst.append(c)
+
+        else:
+            hidden_nei_lst.append(c)
+
+    #base checks given by document
+    if clue == 0:
+        for neighbor in hidden_nei_lst: #mark all neighbors as clear
+            neighbor.flag_as_clear()
+            revealed_dict[neighbor] = 0
+            if neighbor in unrevealed_list:
+                unrevealed_list.remove(neighbor)
+            draw()
+    elif clue == len(neighbors):
+        for neighbor in hidden_nei_lst: #mark all neighbors as bomb
+            neighbor.flag_as_bomb()
+            revealed_dict[neighbor] = 1
+            if neighbor in unrevealed_list:
+                unrevealed_list.remove(neighbor)
+            draw()
+    elif (clue - len(revealed_mine_nei_lst)) == len(hidden_nei_lst):
+        for c in hidden_nei_lst: #mark all neighbors as bomb
+            c.flag_as_bomb()
+            revealed_dict[c] = 1
+            if c in unrevealed_list:
+                unrevealed_list.remove(c)
+            draw()
+    elif ((len(neighbors) - clue) - len(revealed_cleared_nei_lst)) == len(hidden_nei_lst):
+        for c in hidden_nei_lst: #mark all neighbors as bomb
+            c.flag_as_clear()
+            revealed_dict[c] = 0
+            if c in unrevealed_list:
+                unrevealed_list.remove(c)
+            draw()
+
 
 
 def base_agent_query(revealed_dict, cell, draw, revealed_bombs, safe_cell_lst, explored, hidden_cells):
@@ -55,7 +117,8 @@ def base_agent_query(revealed_dict, cell, draw, revealed_bombs, safe_cell_lst, e
         revealed_bombs.append(cell)
         if cell.get_id() in hidden_cells:
             hidden_cells.remove(cell.get_id())
-    elif cell.get_state() == Node.CLEAR:
+    if cell.get_state() == Node.CLEAR:
+        print("Cell is safe")
         cell.flag_as_clear()
         revealed_dict[cell] = 0
         if cell.get_id() in hidden_cells:
