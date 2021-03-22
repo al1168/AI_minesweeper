@@ -226,7 +226,6 @@ def driver2(grid, total_bombs, dim, draw):
                              hidden_cells)
             cnt += 1
         update_equations(equ_list, revealed_dict, id_cell_dict)
-        print("\n\n\n")
         fact_scan(equ_list, revealed_dict, id_cell_dict, hidden_cells)
         update_equations(equ_list, revealed_dict, id_cell_dict)
         fact_scan(equ_list, revealed_dict, id_cell_dict, hidden_cells)
@@ -238,8 +237,6 @@ def driver2(grid, total_bombs, dim, draw):
             printEQlst(equ_list)
             least_involved_cell = query_least_involved(equ_list, hidden_cells)
             equ_list_copy = copy_equ_list(equ_list)
-            print("seperation")
-            print(hidden_cells)
             printEQlst(equ_list_copy)
             print("This is your least involved")
             print(hidden_cells)
