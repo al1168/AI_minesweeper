@@ -14,7 +14,7 @@ EXPLORED = (255, 165, 0)
 BOMB_MARK = (255, 165, 0)
 GREY = (128, 128, 128)
 CLICKED = (0, 255, 0)
-
+Stepped_On_BOMB = (0,0,128)
 #HIDDEN = (67, 70, 75)
 #CLEAR = (0, 255, 0)
 #AGENT = (255, 255, 0)
@@ -78,6 +78,9 @@ class Cell:
 
     def incr_value(self):
         self.clue += 1
+
+    def flag_as_stepped(self):
+        self.state = Stepped_On_BOMB
 
     def set_clue(self, val):
         self.clue = val

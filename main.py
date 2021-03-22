@@ -117,11 +117,8 @@ def reset(grid):
 def main(win, width, dimension, num_bombs):
     dim = dimension
     actual_grid = create_grid(dim,width)
-    print('helo?????????????????')
-    #printgrid(grid,len(grid))
     generate_game_grid(actual_grid, dim, num_bombs)
     calc_clues(actual_grid)
-    # printgrid(actual_grid,len(actual_grid))
 
     game_grid = actual_grid
     run = True
