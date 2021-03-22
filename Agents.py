@@ -53,7 +53,7 @@ def base_agent(game_grid, draw):
 
 def basic_agent_query(revealed_dict, cell, draw , unrevealed_list, revealed_bombs):
     if not cell.is_safe():
-        cell.flag_as_bomb()
+        cell.flag_as_stepped()
         revealed_dict[cell] = 1
         if cell in unrevealed_list:
             unrevealed_list.remove(cell)
@@ -240,6 +240,9 @@ def driver2(grid, total_bombs, dim, draw):
         print(hidden_cells)
         #     contradiction portion:
         if len(equ_list) > 0 and len(hidden_cells) > 0:
+            temp_hidden_cells = hidden_cells.copy()
+            print("THIS IS TEMP HIDDEN CELLS")
+            print(temp_hidden_cells)
             printEQlst(equ_list)
             least_involved_cell = query_least_involved(equ_list, hidden_cells)
             equ_list_copy = copy_equ_list(equ_list)
@@ -282,7 +285,7 @@ def driver2(grid, total_bombs, dim, draw):
         #             else random
         print("BEFORE  RANDOM")
         print(hidden_cells)
-        if len(hidden_cells) > 0:
+        if len(hidden_cells) > 0 and len(safe_cells) <= 0:
             print("inside random")
             print(hidden_cells)
             randcell = id_cell_dict[hidden_cells[(random.randrange(len(hidden_cells)))]]
