@@ -34,7 +34,7 @@ def base_agent(game_grid, draw):
     print("Pre Loop")
     print(len(unrevealed_lst))
     step = 1
-    basic_agent_query(revealed_dict, currCell, draw, unrevealed_lst)
+    basic_agent_query(revealed_dict, currCell, draw, unrevealed_lst, revealed_bombs)
     while len(unrevealed_lst) != 0:
         randCell = random.choice(unrevealed_lst)
         if randCell not in revealed_dict:
