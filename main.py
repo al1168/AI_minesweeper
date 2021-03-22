@@ -143,10 +143,10 @@ def main(win, width, dimension, num_bombs):
     pygame.quit()
 
 if __name__ == '__main__':
-    # dimension = int(sys.argv[1])
-    # num_bombs = float(sys.argv[2])
-    dimension = 10
-    num_bombs = 9
+    dimension = int(sys.argv[1])
+    num_bombs = float(sys.argv[2])
+    #dimension = 10
+    #num_bombs = 9
     if num_bombs > dimension * dimension:
         print("Too many bombs")
         exit()
