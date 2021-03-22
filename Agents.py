@@ -24,9 +24,12 @@ def base_agent(game_grid, draw):
     print(revealed_dict)
     unrevealed_lst = []
     revealed_bombs = []
+    original_bombs = []
     for row in game_grid:
         for cell in row:
             unrevealed_lst.append(cell)
+            if cell.get_state() == Node.BOMB:
+                original_bombs.append(cell)
 
     print("Pre Loop")
     print(len(unrevealed_lst))
@@ -36,7 +39,7 @@ def base_agent(game_grid, draw):
         randCell = random.choice(unrevealed_lst)
         if randCell not in revealed_dict:
             print("Query number: "+str(step))
-            basic_agent_query(revealed_dict, randCell, draw, unrevealed_lst)
+            basic_agent_query(revealed_dict, randCell, draw, unrevealed_lst, revealed_bombs)
             step += 1
     print("Post Loop")
     print(len(unrevealed_lst))
@@ -48,12 +51,13 @@ def base_agent(game_grid, draw):
     #print(revealed_bombs)
 
 
-def basic_agent_query(revealed_dict, cell, draw , unrevealed_list):
+def basic_agent_query(revealed_dict, cell, draw , unrevealed_list, revealed_bombs):
     if not cell.is_safe():
         cell.flag_as_bomb()
         revealed_dict[cell] = 1
         if cell in unrevealed_list:
             unrevealed_list.remove(cell)
+            revealed_bombs.append(cell)
         print("Stepped on bomb")
         draw()
     elif cell.is_safe():
@@ -92,6 +96,7 @@ def basic_agent_query(revealed_dict, cell, draw , unrevealed_list):
             revealed_dict[neighbor] = 1
             if neighbor in unrevealed_list:
                 unrevealed_list.remove(neighbor)
+                revealed_bombs.append(neighbor)
             draw()
     elif (clue - len(revealed_mine_nei_lst)) == len(hidden_nei_lst):
         for c in hidden_nei_lst: #mark all neighbors as bomb
@@ -99,6 +104,7 @@ def basic_agent_query(revealed_dict, cell, draw , unrevealed_list):
             revealed_dict[c] = 1
             if c in unrevealed_list:
                 unrevealed_list.remove(c)
+                revealed_bombs.append(c)
             draw()
     elif ((len(neighbors) - clue) - len(revealed_cleared_nei_lst)) == len(hidden_nei_lst):
         for c in hidden_nei_lst: #mark all neighbors as bomb
