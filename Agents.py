@@ -117,14 +117,8 @@ def basic_agent_query(revealed_dict, cell, draw , unrevealed_list, revealed_bomb
 
 
 def base_agent_query(revealed_dict, cell, draw, revealed_bombs, safe_cell_lst, explored, hidden_cells):
-    print("QUERYING CELL ID:" + str(cell.id))
-    print('\n\n')
-    print(cell.get_state())
-    print("THIS  IS CURRENT HIDDEN CELLS")
-    print(hidden_cells)
     if cell.id in hidden_cells:
         hidden_cells.remove(cell.get_id())
-    print("THIS  IS AFTER HIDDEN CELLS")
     if cell.safe == False:
         print("LANDED ON BOMB AT")
         print('Marking as bomb' + str(cell.get_id()))
@@ -155,11 +149,6 @@ def base_agent_query(revealed_dict, cell, draw, revealed_bombs, safe_cell_lst, e
         for neighbor in neighbors:  # mark all neighbors as clear
             neighbor.flag_as_clear()
             if neighbor.get_id() in hidden_cells:
-                print("THIS  IS CURRENT HIDDEN CELLS")
-                print(hidden_cells)
-                print("deleting" + str(cell.get_id()) + "from hidden LIST")
-                print("THIS  IS AFTER HIDDEN CELLS")
-                print(hidden_cells)
                 hidden_cells.remove(neighbor.get_id())
             revealed_dict[neighbor] = 0
             if neighbor not in safe_cell_lst and neighbor.get_id() not in explored:
@@ -169,12 +158,8 @@ def base_agent_query(revealed_dict, cell, draw, revealed_bombs, safe_cell_lst, e
         for neighbor in neighbors:  # mark all neighbors as bomb
             neighbor.flag_as_bomb()
             if neighbor.get_id() in hidden_cells:
-                print("THIS  IS CURRENT HIDDEN CELLS")
-                print(hidden_cells)
-                print("deleting" + str(cell.get_id()) + "from hidden LIST")
+
                 hidden_cells.remove(neighbor.get_id())
-                print("THIS  IS AFTER HIDDEN CELLS")
-                print(hidden_cells)
             revealed_dict[neighbor] = 1
             draw()
 
@@ -182,12 +167,9 @@ def base_agent_query(revealed_dict, cell, draw, revealed_bombs, safe_cell_lst, e
         for cell in hidden_nei_lst:  # mark all neighbors as bomb
             cell.flag_as_bomb()
             if cell.get_id() in hidden_cells:
-                print("THIS  IS CURRENT HIDDEN CELLS")
-                print(hidden_cells)
-                print("deleting" + str(cell.get_id()) + "from hidden LIST")
+
                 hidden_cells.remove(cell.get_id())
-                print("THIS  IS  AFTER HIDDEN CELLS")
-                print(hidden_cells)
+
             revealed_dict[cell] = 1
             draw()
     elif (len(neighbors) - clue) - len(cleared_nei_lst) == len(hidden_nei_lst):
@@ -197,12 +179,7 @@ def base_agent_query(revealed_dict, cell, draw, revealed_bombs, safe_cell_lst, e
             if cell not in safe_cell_lst and cell.get_id() not in explored:
                 safe_cell_lst.append(cell)
             if cell.get_id() in hidden_cells:
-                print("THIS  IS CURRENT HIDDEN CELLS")
-                print(hidden_cells)
-                print("deleting" + str(cell.get_id()) + "from hidden LIST")
                 hidden_cells.remove(cell.get_id())
-                print("THIS  IS CURRENT HIDDEN CELLS")
-                print(hidden_cells)
             draw()
 
 
@@ -210,6 +187,7 @@ def printcell(cell):
     print('[' + str(cell.row) + '] [' + str(cell.col) + ']')
 
 def driver2(grid, total_bombs, dim, draw):
+    randomcells = []
     explored = set()
     revealed_bombs = []
     safe_cells = []
@@ -228,105 +206,107 @@ def driver2(grid, total_bombs, dim, draw):
             click_safe_cells(safe_cells, revealed_dict, revealed_bombs, equ_list, draw, explored, hidden_cells)
             update_equations(equ_list, revealed_dict, id_cell_dict)
             fact_scan(equ_list, revealed_dict, id_cell_dict, hidden_cells)
-            safe_cell_adder2(equ_list, safe_cells, id_cell_dict, revealed_dict, revealed_bombs, draw, explored,
+            safe_cell_adder3(equ_list, safe_cells, id_cell_dict, revealed_dict, revealed_bombs, draw, explored,
                              hidden_cells)
             cnt += 1
         update_equations(equ_list, revealed_dict, id_cell_dict)
         fact_scan(equ_list, revealed_dict, id_cell_dict, hidden_cells)
         update_equations(equ_list, revealed_dict, id_cell_dict)
         fact_scan(equ_list, revealed_dict, id_cell_dict, hidden_cells)
-        safe_cell_adder2(equ_list, safe_cells, id_cell_dict, revealed_dict, revealed_bombs, draw, explored,
+        safe_cell_adder3(equ_list, safe_cells, id_cell_dict, revealed_dict, revealed_bombs, draw, explored,
                          hidden_cells)
-        print(hidden_cells)
         #     contradiction portion:
         if len(equ_list) > 0 and len(hidden_cells) > 0:
-            temp_hidden_cells = hidden_cells.copy()
-            print("THIS IS TEMP HIDDEN CELLS")
-            print(temp_hidden_cells)
-            printEQlst(equ_list)
-            least_involved_cell = query_least_involved(equ_list, hidden_cells)
-            equ_list_copy = copy_equ_list(equ_list)
-            printEQlst(equ_list_copy)
-            print("This is your least involved")
-            print(hidden_cells)
-            print(least_involved_cell)
-            # assume it is bomb.
-            assumptions[id_cell_dict[least_involved_cell]] = 1
-            for equ in equ_list_copy:
-                for var in equ.getlist():
-                    if var == least_involved_cell:
-                        equ.getlist().remove(var)
-                        equ.value -= 1
-            printEQlst(equ_list_copy)
-            print("--------------------------------------------------------")
-            safe_assume(equ_list_copy, assumptions, id_cell_dict)
-            print("AFTER SAFE ASSUME----------------------------------")
-            printEQlst(equ_list_copy)
-            print(hidden_cells)
-            update_equations(equ_list_copy, assumptions, id_cell_dict)
-            print("AFTER update ---------------------------------")
-            printEQlst(equ_list_copy)
-            print(hidden_cells)
-            update_equations(equ_list_copy, assumptions, id_cell_dict)
-            print("\n\n\nAfter second update:\n\n\n")
-            printEQlst(equ_list_copy)
-            print(hidden_cells)
-            if not check_equ_list(equ_list_copy):
-                print("found contradiction")
-                safe_cells.append(id_cell_dict[least_involved_cell])
-            else:
-                # fact_scan(equ_list_copy, assumptions, id_cell_dict, [])
+            temp_query_list = query_least_involved2(equ_list, hidden_cells)
+            while len(temp_query_list) > 0:
+                equ_list_copy = copy_equ_list(equ_list)
+                least_involved_cell = temp_query_list.pop()
+                print("least involved: " +str(least_involved_cell))
+                # assume it is bomb.
+                assumptions[id_cell_dict[least_involved_cell]] = 1
+                printEQlst(equ_list_copy)
+                print("\n\n\n")
+                for equ in equ_list_copy:
+                    for var in equ.getlist():
+                        if var == least_involved_cell:
+                            equ.getlist().remove(var)
+                            equ.value -= 1
+                printEQlst(equ_list_copy)
+                printdict(assumptions)
+                print("\n\n\n")
+
+                x = safe_assume(equ_list_copy, assumptions, id_cell_dict)
+                if not x:
+                    print("x contradicted")
+                    safe_cells.append(id_cell_dict[least_involved_cell])
+                    break
+                printEQlst(equ_list_copy)
+                printdict(assumptions)
+                print("\n\n\n")
+
                 if not check_equ_list(equ_list_copy):
+                    printEQlst(equ_list_copy)
+                    printdict(assumptions)
                     print("found contradiction")
                     safe_cells.append(id_cell_dict[least_involved_cell])
-            print("\n\n\n")
-            # printEQlst(equ_list_copy)
-            printdict(assumptions)
-        #             else random
-        print("BEFORE  RANDOM")
-        print(hidden_cells)
+                    break
+            #             else random
         if len(hidden_cells) > 0 and len(safe_cells) <= 0:
-            print("inside random")
-            print(hidden_cells)
             randcell = id_cell_dict[hidden_cells[(random.randrange(len(hidden_cells)))]]
             base_agent_query(revealed_dict, randcell, draw, revealed_bombs, safe_cells, explored, hidden_cells)
             print("THIS IS RANDOM CELL ID:" + str(randcell.id))
             explored.add(randcell.id)
-        print("length of HIDDEN " + str(len(hidden_cells)))
-        print(hidden_cells)
-    print("THIS IS EXPLORED LIST")
-    print(explored)
+            randomcells.append(randcell.id)
+    print("THIS IS RANDOM LIST")
+    print(randomcells)
+    print(len(randomcells))
+
     draw()
+def query_least_involved2(equ_list, hidden_cells):
+    templst = []
+    for equ in equ_list:
+        for var in equ.getlist():
+            if var in hidden_cells and var not in templst:
+                templst.append(var)
+    templst.sort(key=templst.count, reverse=True)
+    print("qL2")
+    print(templst)
+    return templst
 
 
 def printdict(dict):
     for key in dict:
         print(str(key.id) + ' ' + str(dict[key]))
 
-
+def get_equ_vars(equ_list):
+    list_of_vars = []
+    for equ in equ_list:
+        for var in equ.getlist():
+            list_of_vars.append(var)
+    return list_of_vars
 def check_equ_list(equ_list):
     for equ in equ_list:
         if equ.getValue() < 0:
             return False
         if len(equ.getlist()) <= 0 and equ.getValue() >= 1:
             return False
+        if len(equ.getlist()) < equ.getValue():
+            return False
     return True
 
 
 def safe_cell_adder3(equ_list, safe_cells, id_cell_dict, revealed_dict, revealed_bombs, draw, explored, hidden_cells):
-    print("length outside of adder for" + str(len(equ_list)))
     for equ in equ_list:
         if equ.getValue() == 0 and len(equ.getlist()) > 0:
             for var in equ.getlist():
                 cell = id_cell_dict[var]
                 if cell not in revealed_dict:
                     base_agent_query(revealed_dict, cell, draw, revealed_bombs, safe_cells, explored, hidden_cells)
+                    explored.add(cell.get_id())
             equ_list.remove(equ)
-    print("length inside of adder for" + str(len(equ_list)))
 
 
 def safe_cell_adder2(equ_list, safe_cells, id_cell_dict, revealed_dict, revealed_bombs, draw, explored, hidden_cells):
-    print("length outside of adder for" + str(len(equ_list)))
     for equ in equ_list:
         if equ.getValue() == 0 and len(equ.getlist()) > 0:
             for var in equ.getlist():
@@ -334,20 +314,33 @@ def safe_cell_adder2(equ_list, safe_cells, id_cell_dict, revealed_dict, revealed
                 if cell not in revealed_dict:
                     safe_cells.append(cell)
             equ_list.remove(equ)
-    print("length inside of adder for" + str(len(equ_list)))
-
 
 def safe_assume(equ_list, assumptions, id_cell_dict):
     for equ in equ_list:
-        printequation(equ)
         if equ.getValue() == 0 and len(equ.getlist()) > 0:
             for var in equ.getlist():
-                print(str(var) + ' found in assumptions')
                 cell = id_cell_dict[var]
+                if cell in assumptions:
+                    if equ.getValue() != assumptions[cell]:
+                        return False
                 assumptions[cell] = 0
-            print("THIS IS  THE  EQUATION THAT  WE REMOVE ")
-            printequation(equ)
             equ_list.remove(equ)
+            update2(equ_list, assumptions, id_cell_dict)
+        elif len(equ.getlist()) == 1:
+            b = equ.getlist().pop()
+            if id_cell_dict[b] in assumptions:
+                if equ.getValue() != assumptions[id_cell_dict[b]]:
+                    return False
+            assumptions[id_cell_dict[b]] = equ.getValue()
+            update2(equ_list, assumptions, id_cell_dict)
+            equ_list.remove(equ)
+    return True
+def update2(equ_list, assumptions, id_cell_dict):
+    for equ in equ_list:
+        for var in equ.getlist():
+            if id_cell_dict[var] in assumptions:
+                equ.getlist().remove(var)
+                equ.value -= assumptions[id_cell_dict[var]]
 
 
 def click_safe_cells(safelist, revealed_dict, revealed_bombs, equ_list, draw, explored, hidden_cells):
@@ -367,7 +360,6 @@ def click_safe_cells(safelist, revealed_dict, revealed_bombs, equ_list, draw, ex
 def fact_scan(equ_list, revealed_list, id_cell_dict, hidden_cells):
     for equ in equ_list:
         if len(equ.getlist()) == 1:
-            printlist(equ.getlist())
             var = equ.getlist().pop()
             cell = id_cell_dict[var]
             clue = equ.getValue()
@@ -378,10 +370,7 @@ def fact_scan(equ_list, revealed_list, id_cell_dict, hidden_cells):
                     cell.flag_as_bomb()
                 if clue == 0:
                     cell.flag_as_clear()
-                print("deleting" + str(var) + "from hidden LIST")
                 hidden_cells.remove(var)
-            for equation in equ_list:
-                printequation(equation)
             equ_list.remove(equ)
 
 
@@ -419,7 +408,6 @@ def update_equations(equ_list, revealed_dict, id_cell_dict):
     for equ in equ_list:
         newequ = equ.getlist()
         for var in newequ:
-
             cell = id_cell_dict[var]
             if cell in revealed_dict:
                 equ.value -= revealed_dict[cell]
