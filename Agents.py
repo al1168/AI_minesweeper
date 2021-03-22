@@ -2,7 +2,7 @@ import Node
 import random
 import time
 
-
+#  object to mirror constraint problems
 class Equation:
     def __init__(self, list, value):
         self.list = list
@@ -14,7 +14,7 @@ class Equation:
     def getlist(self):
         return self.list
 
-
+#  basic agent that randomly selects a cell to query
 def base_agent(game_grid, draw):
     safe_cell_lst = []
     revealed_dict = {}
@@ -50,7 +50,11 @@ def base_agent(game_grid, draw):
     #print("bomb list:")
     #print(revealed_bombs)
 
-
+# basic query function for basic agent, similar to how it was described on document
+# revealed dict: stores current knowledge/facts agent knows
+# cell: queried cell
+# unreavealed_list : cells that have not been flagged
+# revealed bombs: track number of bombs reveals so far
 def basic_agent_query(revealed_dict, cell, draw , unrevealed_list, revealed_bombs):
     if not cell.is_safe():
         cell.flag_as_stepped()
@@ -115,19 +119,22 @@ def basic_agent_query(revealed_dict, cell, draw , unrevealed_list, revealed_bomb
             draw()
 
 
+# revealed dict: stores current knowledge/facts agent knows
+# cell: queried cell
+# revealed bombs: track number of bombs reveals so far
+# safe_cell_lst: list of cells that are safe to query
+# explored : list of queried cells
+# hidden_cells:  list of unflagged cells
 
 def base_agent_query(revealed_dict, cell, draw, revealed_bombs, safe_cell_lst, explored, hidden_cells):
     if cell.id in hidden_cells:
         hidden_cells.remove(cell.get_id())
     if cell.safe == False:
-        print("LANDED ON BOMB AT")
-        print('Marking as bomb' + str(cell.get_id()))
         printcell(cell)
         cell.flag_as_stepped()
         revealed_dict[cell] = 1
         revealed_bombs.append(cell)
     elif cell.safe == True:
-        print('Marking as clear' + str(cell.get_id()))
         cell.flag_as_clear()
         revealed_dict[cell] = 0
     clue = cell.get_clue()
@@ -182,10 +189,19 @@ def base_agent_query(revealed_dict, cell, draw, revealed_bombs, safe_cell_lst, e
                 hidden_cells.remove(cell.get_id())
             draw()
 
-
+#  prints cells
 def printcell(cell):
     print('[' + str(cell.row) + '] [' + str(cell.col) + ']')
-
+# improved agent
+# initially, query cell[0][0]
+"""
+ initially, query cell[0][0]
+ if we get information from that, we can determine potential safe cells and keep clicking all the safecells until there are none left.
+ Then we do an inference by contradiction. 
+ we assume that a cell is a bomb, and if a contradiction arrives, we will assume it is a safe cell and add it back into the safe cells list
+ else we will guess at random for that iteration
+ and this will loop until all hidden cells are flagged 
+"""
 def driver2(grid, total_bombs, dim, draw):
     randomcells = []
     explored = set()
@@ -221,47 +237,33 @@ def driver2(grid, total_bombs, dim, draw):
             while len(temp_query_list) > 0:
                 equ_list_copy = copy_equ_list(equ_list)
                 least_involved_cell = temp_query_list.pop()
-                print("least involved: " +str(least_involved_cell))
                 # assume it is bomb.
                 assumptions[id_cell_dict[least_involved_cell]] = 1
-                printEQlst(equ_list_copy)
-                print("\n\n\n")
                 for equ in equ_list_copy:
                     for var in equ.getlist():
                         if var == least_involved_cell:
                             equ.getlist().remove(var)
                             equ.value -= 1
-                printEQlst(equ_list_copy)
-                printdict(assumptions)
-                print("\n\n\n")
 
                 x = safe_assume(equ_list_copy, assumptions, id_cell_dict)
                 if not x:
-                    print("x contradicted")
                     safe_cells.append(id_cell_dict[least_involved_cell])
                     break
-                printEQlst(equ_list_copy)
-                printdict(assumptions)
-                print("\n\n\n")
 
                 if not check_equ_list(equ_list_copy):
-                    printEQlst(equ_list_copy)
-                    printdict(assumptions)
-                    print("found contradiction")
                     safe_cells.append(id_cell_dict[least_involved_cell])
                     break
             #             else random
         if len(hidden_cells) > 0 and len(safe_cells) <= 0:
             randcell = id_cell_dict[hidden_cells[(random.randrange(len(hidden_cells)))]]
             base_agent_query(revealed_dict, randcell, draw, revealed_bombs, safe_cells, explored, hidden_cells)
-            print("THIS IS RANDOM CELL ID:" + str(randcell.id))
             explored.add(randcell.id)
             randomcells.append(randcell.id)
-    print("THIS IS RANDOM LIST")
     print(randomcells)
     print(len(randomcells))
 
     draw()
+#     returns a least of least involved cells from greatest to least
 def query_least_involved2(equ_list, hidden_cells):
     templst = []
     for equ in equ_list:
@@ -269,21 +271,15 @@ def query_least_involved2(equ_list, hidden_cells):
             if var in hidden_cells and var not in templst:
                 templst.append(var)
     templst.sort(key=templst.count, reverse=True)
-    print("qL2")
-    print(templst)
     return templst
 
-
+# print dictionaries
 def printdict(dict):
     for key in dict:
         print(str(key.id) + ' ' + str(dict[key]))
 
-def get_equ_vars(equ_list):
-    list_of_vars = []
-    for equ in equ_list:
-        for var in equ.getlist():
-            list_of_vars.append(var)
-    return list_of_vars
+# check if the equations are abnormal, IE CELL 1 = 3 bombs, No Cells = 2 bombs
+# Cell 1 = -2 bombs
 def check_equ_list(equ_list):
     for equ in equ_list:
         if equ.getValue() < 0:
@@ -294,7 +290,7 @@ def check_equ_list(equ_list):
             return False
     return True
 
-
+# query cells whose equation values  == 0
 def safe_cell_adder3(equ_list, safe_cells, id_cell_dict, revealed_dict, revealed_bombs, draw, explored, hidden_cells):
     for equ in equ_list:
         if equ.getValue() == 0 and len(equ.getlist()) > 0:
@@ -305,7 +301,7 @@ def safe_cell_adder3(equ_list, safe_cells, id_cell_dict, revealed_dict, revealed
                     explored.add(cell.get_id())
             equ_list.remove(equ)
 
-
+# add cells whose equation values  == 0 to safe cell list
 def safe_cell_adder2(equ_list, safe_cells, id_cell_dict, revealed_dict, revealed_bombs, draw, explored, hidden_cells):
     for equ in equ_list:
         if equ.getValue() == 0 and len(equ.getlist()) > 0:
@@ -314,7 +310,8 @@ def safe_cell_adder2(equ_list, safe_cells, id_cell_dict, revealed_dict, revealed
                 if cell not in revealed_dict:
                     safe_cells.append(cell)
             equ_list.remove(equ)
-
+# adds safe cells to assumption dictionary based off the intial assumtion that a cell was a bomb:
+# goal is to fine a contradiction
 def safe_assume(equ_list, assumptions, id_cell_dict):
     for equ in equ_list:
         if equ.getValue() == 0 and len(equ.getlist()) > 0:
@@ -335,6 +332,7 @@ def safe_assume(equ_list, assumptions, id_cell_dict):
             update2(equ_list, assumptions, id_cell_dict)
             equ_list.remove(equ)
     return True
+# update equations for during inferencing
 def update2(equ_list, assumptions, id_cell_dict):
     for equ in equ_list:
         for var in equ.getlist():
@@ -342,7 +340,7 @@ def update2(equ_list, assumptions, id_cell_dict):
                 equ.getlist().remove(var)
                 equ.value -= assumptions[id_cell_dict[var]]
 
-
+#  iterate through safe cells and create equations for them
 def click_safe_cells(safelist, revealed_dict, revealed_bombs, equ_list, draw, explored, hidden_cells):
     for cell in safelist:
         #         click cell
@@ -356,7 +354,7 @@ def click_safe_cells(safelist, revealed_dict, revealed_bombs, equ_list, draw, ex
         equ_list.append(eq)
         safelist.remove(cell)
 
-
+# find equations that have 1 variable and flag it based on the value as  well as add it to a fact knowledge base/dictionary
 def fact_scan(equ_list, revealed_list, id_cell_dict, hidden_cells):
     for equ in equ_list:
         if len(equ.getlist()) == 1:
@@ -374,17 +372,7 @@ def fact_scan(equ_list, revealed_list, id_cell_dict, hidden_cells):
             equ_list.remove(equ)
 
 
-def removeall(equ_list):
-    print('\n\n\n')
-    for equ in equ_list:
-        if len(equ.getlist()) <= 1:
-            equ_list.remove(equ)
-    for eq in equ_list:
-        print(len(eq.getlist()))
-        printequation(eq)
-    print("LENg OF EQ LIST after REMOVE " + str(len(equ_list)))
-
-
+# a dictionary that stores each cell with a corresponding cell ID
 def equ_list_dict(grid):
     diction = {}
     for row in grid:
@@ -393,7 +381,7 @@ def equ_list_dict(grid):
             diction[id] = cell
     return diction
 
-
+#  returns a copy of equations list
 def copy_equ_list(equ_list):
     new_list = []
     for equ in equ_list:
@@ -403,7 +391,7 @@ def copy_equ_list(equ_list):
         new_list.append(Equation(varlst, equ.getValue()))
     return new_list
 
-
+#  update equations based on facts known from revealed dictionary
 def update_equations(equ_list, revealed_dict, id_cell_dict):
     for equ in equ_list:
         newequ = equ.getlist()
@@ -416,7 +404,7 @@ def update_equations(equ_list, revealed_dict, id_cell_dict):
             equ_list.remove(equ)
             continue
 
-
+# print equations
 def printequation(equation):
     b = ''
     for variable in equation.getlist():
@@ -425,7 +413,7 @@ def printequation(equation):
     b += '= ' + str(equation.getValue())
     print(b + '\n')
 
-
+# print a list
 def printlist(list):
     b = ''
     for variable in list:
@@ -433,22 +421,22 @@ def printlist(list):
         # print('THIS THE VARIABLE ' + str(variable))
     print(b)
 
+#
+# def query_least_involved(equ_list, hidden_cells):
+#     templst = []
+#     for equ in equ_list:
+#         for var in equ.getlist():
+#             if var in hidden_cells:
+#                 templst.append(var)
+#     return min(templst, key=templst.count)
 
-def query_least_involved(equ_list, hidden_cells):
-    templst = []
-    for equ in equ_list:
-        for var in equ.getlist():
-            if var in hidden_cells:
-                templst.append(var)
-    return min(templst, key=templst.count)
-
-
+#print entire list of equations
 def printEQlst(equ_list):
     for eq in equ_list:
         # print(len(eq.getlist()))
         printequation(eq)
 
-
+#  calculates the score
 def calc_score(grid, dict):
     total = len(dict)
     score = 0
