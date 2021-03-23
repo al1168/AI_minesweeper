@@ -10,9 +10,12 @@ WIDTH = 800
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
 pygame.display.set_caption("Mine Sweeper")
 #pygame.init()
+
+#print grid
 def printcell(cell):
     print('[' + str(cell.row) + '] [' + str(cell.col) + ']')
 
+#calculate clues for each cecll
 def calc_clues(grid):
     for row in grid:
         for cell in row:
@@ -26,7 +29,7 @@ def calc_clues(grid):
                 templst.append(c.get_pos())
             print(templst)
 
-
+#update clues on cell
 def update_bomb_clues(grid,bomb_cell):
     if bomb_cell.row < bomb_cell.total_rows - 1:  # DOWN
         grid[bomb_cell.row + 1][bomb_cell.col].incr_value()
@@ -52,6 +55,7 @@ def update_bomb_clues(grid,bomb_cell):
     if bomb_cell.row < bomb_cell.total_rows - 1 and bomb_cell.col < bomb_cell.total_rows - 1:  # bottom right
         grid[bomb_cell.row + 1][bomb_cell.col+1].incr_value()
 
+#pygaem draw grid
 def draw_grid(win, rows, width):
     gap = width // rows
     for i in range(rows):
@@ -76,6 +80,7 @@ def printgrid(grid, rows):
             print('[' + str(cell.row) + ']' + ' [' + str(cell.col) + ']' + 'VALUE\t'+str(cell.clue))
             # print(str(cell.color))
 
+#create grid
 def create_grid(rows, width):
     grid = []
     gap = width // rows
@@ -87,6 +92,7 @@ def create_grid(rows, width):
             grid[i].append(cell)
     return grid
 
+#create minesweeper game grid with bombs
 def generate_game_grid(grid, dim, totalbombs):
     curr_num_bomb = 0
     while curr_num_bomb < totalbombs:
@@ -100,12 +106,15 @@ def generate_game_grid(grid, dim, totalbombs):
         curr_num_bomb += 1
         #update_bomb_clues(grid,cell)
 
+#start the game grid
+#hide all cells
 def start_game_grid(game_grid):
     for row in game_grid:
         for cell in row:
             cell.set_hidden()
     return game_grid
 
+#reset grid
 def reset(grid):
     for row in grid:
         for cell in row:
@@ -114,6 +123,7 @@ def reset(grid):
                 continue
             cell.state = Node.CLEAR
 
+#main function for running the program
 def main(win, width, dimension, num_bombs):
     dim = dimension
     actual_grid = create_grid(dim,width)

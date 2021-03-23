@@ -15,12 +15,6 @@ BOMB_MARK = (255, 165, 0)
 GREY = (128, 128, 128)
 CLICKED = (0, 255, 0)
 Stepped_On_BOMB = (0,0,128)
-#HIDDEN = (67, 70, 75)
-#CLEAR = (0, 255, 0)
-#AGENT = (255, 255, 0)
-#HIDDEN = (67, 70, 75)
-#EXPLORED = (255, 165, 0)
-#FREE = (255, 165, 0)
 GREY = (128,128,128)
 
 class Cell:
@@ -100,6 +94,7 @@ class Cell:
                 c += 1
         self.clue = c
 
+    #main cell draw method
     def draw(self, win):
         pygame.draw.rect(win, self.state, (self.x, self.y, self.width, self.width))
         number_text = str(self.clue)
@@ -110,6 +105,7 @@ class Cell:
         # Draw the number image
         win.blit(number_image, (self.x + 2 + margin_x, self.y + 2 + margin_y))
 
+    #draw cells baed on state
     def draw2(self, win):
         if self.get_state() == HIDDEN:
             pygame.draw.rect(win, HIDDEN, (self.x, self.y, self.width, self.width))
@@ -127,7 +123,7 @@ class Cell:
         elif self.get_state() == CLEAR:
             pygame.draw.rect(win, CLEAR, (self.x, self.y, self.width, self.width))
 
-
+    #updates the neighbors list
     def update_neighbors(self, grid):
         self.neighbors = []
         if self.row < self.total_rows - 1:  # DOWN
@@ -177,7 +173,7 @@ class Agent:
 
         self.pos = position
 
-
+#equation class
 class Equation:
     def __init__(self, list, value):
         self.list = list
