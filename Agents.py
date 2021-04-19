@@ -150,9 +150,11 @@ def base_agent_query(revealed_dict, cell, draw, revealed_bombs, safe_cell_lst, e
         cell.flag_as_stepped()
         revealed_dict[cell] = 1
         revealed_bombs.append(cell)
+        explored.add(cell.id)
     elif cell.safe == True:
         cell.flag_as_clear()
         revealed_dict[cell] = 0
+        explored.add(cell.id)
     clue = cell.get_clue()
     neighbors = cell.get_neighbors()
     cleared_nei_lst = []
@@ -227,69 +229,148 @@ def driver2(grid, total_bombs, dim, draw):
     equ_list = []
     hidden_cells = list(range(0, dim ** 2))
     id_cell_dict = equ_list_dict(grid)
-    # query 0 0 to start getting clues and safecells
     startcell = grid[0][0]
     base_agent_query(revealed_dict, startcell, draw, revealed_bombs, safe_cells, explored, hidden_cells)
+    equ_list.append(generate_equ(startcell))
     explored.add(startcell.get_id())
-    assumptions = {}
-    cnt = 0
+
+    lstofall = []
     while len(hidden_cells) > 0:
-        #time.sleep(1.5)
         while len(safe_cells) > 0:
-            click_safe_cells(safe_cells, revealed_dict, revealed_bombs, equ_list, draw, explored, hidden_cells)
-            update_equations(equ_list, revealed_dict, id_cell_dict)
-            fact_scan(equ_list, revealed_dict, id_cell_dict, hidden_cells)
-            safe_cell_adder3(equ_list, safe_cells, id_cell_dict, revealed_dict, revealed_bombs, draw, explored,
-                             hidden_cells)
-            cnt += 1
-        update_equations(equ_list, revealed_dict, id_cell_dict)
-        fact_scan(equ_list, revealed_dict, id_cell_dict, hidden_cells)
-        update_equations(equ_list, revealed_dict, id_cell_dict)
-        fact_scan(equ_list, revealed_dict, id_cell_dict, hidden_cells)
-        safe_cell_adder3(equ_list, safe_cells, id_cell_dict, revealed_dict, revealed_bombs, draw, explored,
-                         hidden_cells)
-        #     contradiction portion:
+            poppedcell = safe_cells.pop()
+            base_agent_query(revealed_dict,poppedcell,draw,revealed_bombs,safe_cells,explored,hidden_cells)
+            gen_equ = generate_equ(poppedcell)
+            equ_list.append(gen_equ)
+            lstofall.append(copy_equ(gen_equ))
+            for equ in equ_list:
+                elst = equ.list
+                for id in elst:
+                    if id_cell_dict[id] in revealed_dict.keys():
+                        value = revealed_dict[id_cell_dict[id]]
+                        equ.value -= value
+                        elst.remove(id)
+                if len(elst) == 1 and equ.value == 1:
+                    single = elst.pop()
+                    singlecell = id_cell_dict[single]
+                    revealed_dict[singlecell] = 1
+                    singlecell.flag_as_bomb()
+                    print("THIS IS SINGE"+ str(single))
+                    if single in hidden_cells:
+                        hidden_cells.remove(single)
+                    print("Flagged cell: "+str(single)+" as bomb")
+                    equ_list.remove(equ)
+            for equ in equ_list:
+                if equ.getValue() == 0:
+                    for id in equ.getlist():
+                        if id not in explored:
+                            safe_cells.append(id_cell_dict[id])
+                    equ_list.remove(equ)
         if len(equ_list) > 0 and len(hidden_cells) > 0:
             temp_query_list = query_least_involved2(equ_list, hidden_cells)
+            indi = 0
             while len(temp_query_list) > 0:
-                equ_list_copy = copy_equ_list(equ_list)
+                    #  store id as keys not ACTUAL CELL
+                assumptions = {}
                 least_involved_cell = temp_query_list.pop()
-                # assume it is bomb.
-                assumptions[id_cell_dict[least_involved_cell]] = 1
-                for equ in equ_list_copy:
-                    for var in equ.getlist():
-                        if var == least_involved_cell:
-                            equ.getlist().remove(var)
-                            equ.value -= 1
+                # print('THIS IS LEAST INVOLVED: '+str(least_involved_cell))
+                copy_lstofall = copy_equ_list(lstofall)
+                assumptions[least_involved_cell] = 1
+                for equ in copy_lstofall:
+                    elst = equ.list
+                    if least_involved_cell in elst:
+                        equ.value -= assumptions[least_involved_cell]
+                        elst.remove(least_involved_cell)
+            #       assuming hype train
+            #     search for known assumptions and replaces them in equation
+                ticker = 1
+                while ticker > 0:
+                    ticker = 0
+                    for equ in copy_lstofall:
+                        elst = equ.list
+                        for id in elst:
+                            if id in assumptions.keys():
+                                equ.value -= assumptions[id]
+                                elst.remove(id)
+                        if equ.getValue() == 1 and len(elst) == 1:
+                            single = elst.pop()
+                            assumptions[single] = 1
+                            ticker +=1
+                            copy_lstofall.remove(equ)
+                        if equ.getValue() == 0 and len(elst) > 0:
+                            for id in elst:
+                                assumptions[id] = 0
+                                ticker += 1
+                                elst.remove(id)
+                            copy_lstofall.remove(equ)
 
-                x = safe_assume(equ_list_copy, assumptions, id_cell_dict)
-                if not x:
-                    safe_cells.append(id_cell_dict[least_involved_cell])
-                    break
-
-                if not check_equ_list(equ_list_copy):
-                    safe_cells.append(id_cell_dict[least_involved_cell])
-                    break
-            #             else random
+                        # check for consistency between assumptions and revealed dict
+                        # print(assumptions)
+                        # printdict(revealed_dict)
+                    for ids in assumptions.keys():
+                        cell = id_cell_dict[ids]
+                        if cell in revealed_dict.keys():
+                            if revealed_dict[cell] != assumptions[ids]:
+                                # print("Contradiction at: "+str(least_involved_cell))
+                                indi = 1
+                                break
+                    if indi == 1:
+                        print("Contradiction at c0: " + str(least_involved_cell))
+                        safe_cells.append(id_cell_dict[least_involved_cell])
+                        ticker = 0
+                        indi = 0
+                    else:
+                        for equ in copy_lstofall:
+                            if len(equ.getlist()) >= 0 and equ.getValue() < 0:
+                                indi = 1
+                                break
+                            if len(equ_list) < equ.getValue():
+                                indi = 1
+                                break
+                        if indi == 1:
+                            print("Contradiction c1 at: " + str(least_involved_cell))
+                            safe_cells.append(id_cell_dict[least_involved_cell])
+                            ticker =\
+                                0
+                            indi = 0
         if len(hidden_cells) > 0 and len(safe_cells) <= 0:
             randcell = id_cell_dict[hidden_cells[(random.randrange(len(hidden_cells)))]]
-            base_agent_query(revealed_dict, randcell, draw, revealed_bombs, safe_cells, explored, hidden_cells)
-            explored.add(randcell.id)
+            # base_agent_query(revealed_dict, randcell, draw, revealed_bombs, safe_cells, explored, hidden_cells)
+            # explored.add(randcell.id)
+            safe_cells.append(randcell)
             randomcells.append(randcell.id)
-    print(randomcells)
-    print(len(randomcells))
-
-    draw()
-
-    red_cell = 0
-    for row in grid:
-        for cell in row:
-            if cell.get_state() == Node.BOMB:
-                red_cell += 1
-    print("Safely Marked: " + str(red_cell))
+        # if len(hidden_cells) > 0 and len(safe_cells) <= 0:
+        #     time.sleep(0.2)
+        #     randcell = id_cell_dict[hidden_cells[(random.randrange(len(hidden_cells)))]]
+        #     # base_agent_query(revealed_dict, randcell, draw, revealed_bombs, safe_cells, explored, hidden_cells)
+        #     # explored.add(randcell.id)
+        #     safe_cells.append(randcell)
 
 
+    print("end ")
+    print(safe_cells)
+    # printEQlst(equ_list)
+    return
+def verify_revealed(revealed_dict,id_cell_dict,id,assumptions):
+    if id_cell_dict[id] in revealed_dict.keys():
+        if assumptions[id] != revealed_dict[id_cell_dict[id]]:
+            return False
+    return True
+#             if assumptions[id] != revealed_dict[id_cell_dict[id]]:
+def copy_equ(equ):
+    lst = []
+    for id in equ.getlist():
+        lst.append(id)
+    newEQU = Equation(lst,equ.value)
+    return  newEQU
 #     returns a least of least involved cells from greatest to least
+def generate_equ(cell):
+    temptlst = []
+    for neighbor in cell.get_neighbors():
+        temptlst.append(neighbor.get_id())
+    equValue = cell.get_clue()
+    tempEqu = Equation(temptlst,equValue)
+    # printequation(tempEqu)
+    return tempEqu
 def query_least_involved2(equ_list, hidden_cells):
     templst = []
     for equ in equ_list:
@@ -317,85 +398,6 @@ def check_equ_list(equ_list):
     return True
 
 # query cells whose equation values  == 0
-def safe_cell_adder3(equ_list, safe_cells, id_cell_dict, revealed_dict, revealed_bombs, draw, explored, hidden_cells):
-    for equ in equ_list:
-        if equ.getValue() == 0 and len(equ.getlist()) > 0:
-            for var in equ.getlist():
-                cell = id_cell_dict[var]
-                if cell not in revealed_dict:
-                    base_agent_query(revealed_dict, cell, draw, revealed_bombs, safe_cells, explored, hidden_cells)
-                    explored.add(cell.get_id())
-            equ_list.remove(equ)
-
-# add cells whose equation values  == 0 to safe cell list
-def safe_cell_adder2(equ_list, safe_cells, id_cell_dict, revealed_dict, revealed_bombs, draw, explored, hidden_cells):
-    for equ in equ_list:
-        if equ.getValue() == 0 and len(equ.getlist()) > 0:
-            for var in equ.getlist():
-                cell = id_cell_dict[var]
-                if cell not in revealed_dict:
-                    safe_cells.append(cell)
-            equ_list.remove(equ)
-# adds safe cells to assumption dictionary based off the intial assumtion that a cell was a bomb:
-# goal is to fine a contradiction
-def safe_assume(equ_list, assumptions, id_cell_dict):
-    for equ in equ_list:
-        if equ.getValue() == 0 and len(equ.getlist()) > 0:
-            for var in equ.getlist():
-                cell = id_cell_dict[var]
-                if cell in assumptions:
-                    if equ.getValue() != assumptions[cell]:
-                        return False
-                assumptions[cell] = 0
-            equ_list.remove(equ)
-            update2(equ_list, assumptions, id_cell_dict)
-        elif len(equ.getlist()) == 1:
-            b = equ.getlist().pop()
-            if id_cell_dict[b] in assumptions:
-                if equ.getValue() != assumptions[id_cell_dict[b]]:
-                    return False
-            assumptions[id_cell_dict[b]] = equ.getValue()
-            update2(equ_list, assumptions, id_cell_dict)
-            equ_list.remove(equ)
-    return True
-# update equations for during inferencing
-def update2(equ_list, assumptions, id_cell_dict):
-    for equ in equ_list:
-        for var in equ.getlist():
-            if id_cell_dict[var] in assumptions:
-                equ.getlist().remove(var)
-                equ.value -= assumptions[id_cell_dict[var]]
-
-#  iterate through safe cells and create equations for them
-def click_safe_cells(safelist, revealed_dict, revealed_bombs, equ_list, draw, explored, hidden_cells):
-    for cell in safelist:
-        #         click cell
-        base_agent_query(revealed_dict, cell, draw, revealed_bombs, safelist, explored, hidden_cells)
-        explored.add(cell.get_id())
-        equation_variable_ids = []
-        for neighbor in cell.get_neighbors():
-            equation_variable_ids.append(neighbor.id)
-
-        eq = Equation(equation_variable_ids, cell.get_clue())
-        equ_list.append(eq)
-        safelist.remove(cell)
-
-# find equations that have 1 variable and flag it based on the value as  well as add it to a fact knowledge base/dictionary
-def fact_scan(equ_list, revealed_list, id_cell_dict, hidden_cells):
-    for equ in equ_list:
-        if len(equ.getlist()) == 1:
-            var = equ.getlist().pop()
-            cell = id_cell_dict[var]
-            clue = equ.getValue()
-            if cell not in revealed_list:
-                revealed_list[cell] = clue
-            if var in hidden_cells:
-                if clue == 1:
-                    cell.flag_as_bomb()
-                if clue == 0:
-                    cell.flag_as_clear()
-                hidden_cells.remove(var)
-            equ_list.remove(equ)
 
 
 # a dictionary that stores each cell with a corresponding cell ID
@@ -416,19 +418,6 @@ def copy_equ_list(equ_list):
             varlst.append(var)
         new_list.append(Equation(varlst, equ.getValue()))
     return new_list
-
-#  update equations based on facts known from revealed dictionary
-def update_equations(equ_list, revealed_dict, id_cell_dict):
-    for equ in equ_list:
-        newequ = equ.getlist()
-        for var in newequ:
-            cell = id_cell_dict[var]
-            if cell in revealed_dict:
-                equ.value -= revealed_dict[cell]
-                equ.list.remove(var)
-        if len(equ.getlist()) <= 0 and equ.getValue() == 0:
-            equ_list.remove(equ)
-            continue
 
 # print equations
 def printequation(equation):

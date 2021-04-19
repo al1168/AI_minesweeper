@@ -27,7 +27,7 @@ def calc_clues(grid):
             templst = []
             for c in lst:
                 templst.append(c.get_pos())
-            print(templst)
+            # print(templst)
 
 #update clues on cell
 def update_bomb_clues(grid,bomb_cell):
@@ -105,7 +105,6 @@ def generate_game_grid(grid, dim, totalbombs):
         cell.set_reset()
         curr_num_bomb += 1
         #update_bomb_clues(grid,cell)
-
 #start the game grid
 #hide all cells
 def start_game_grid(game_grid):
@@ -153,10 +152,11 @@ def main(win, width, dimension, num_bombs):
     pygame.quit()
 
 if __name__ == '__main__':
-    dimension = int(sys.argv[1])
-    num_bombs = float(sys.argv[2])
-    #dimension = 10
-    #num_bombs = 9
+    # dimension = int(sys.argv[1])
+    # num_bombs = float(sys.argv[2])
+
+    dimension = 10
+    num_bombs = 70
     if num_bombs > dimension * dimension:
         print("Too many bombs")
         exit()
