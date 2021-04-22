@@ -399,7 +399,16 @@ def driver2(grid, total_bombs, dim, draw):
     print("end ")
     print(safe_cells)
     # printEQlst(equ_list)
+
+    red_cell = 0
+    for row in grid:
+        for cell in row:
+            if cell.get_state() == Node.BOMB:
+                red_cell += 1
+    print("Safely Marked: " + str(red_cell))
+
     return
+
 def verify_revealed(revealed_dict,id_cell_dict,id,assumptions):
     if id_cell_dict[id] in revealed_dict.keys():
         if assumptions[id] != revealed_dict[id_cell_dict[id]]:
