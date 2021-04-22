@@ -15,6 +15,50 @@ class Equation:
         return self.list
 
 #  basic agent that randomly selects a cell to query
+# def base_agent(game_grid, draw):
+#     safe_cell_lst = []
+#     revealed_dict = {}
+#     explored = []
+#     hidden_cells = []
+#     unopened_list = []
+#     currCell = game_grid[0][0]
+#     print(revealed_dict)
+#     unrevealed_lst = []
+#     revealed_bombs = []
+#     original_bombs = []
+#     for row in game_grid:
+#         for cell in row:
+#             unrevealed_lst.append(cell)
+#             unopened_list.append(cell)
+#             if cell.get_state() == Node.BOMB:
+#                 original_bombs.append(cell)
+#
+#     print("Pre Loop")
+#     print(len(unrevealed_lst))
+#     step = 1
+#     time.sleep(1)
+#     basic_agent_query(revealed_dict, currCell, draw, unrevealed_lst, revealed_bombs, unopened_list)
+#
+#     while len(unrevealed_lst) != 0:
+#         randCell = random.choice(unopened_list)
+#         if randCell not in revealed_dict:
+#             print("Query number: "+str(step))
+#             basic_agent_query(revealed_dict, randCell, draw, unrevealed_lst, revealed_bombs, unopened_list)
+#             step += 1
+#             #time.sleep(1.5)
+#     print("Post Loop")
+#     print(len(unrevealed_lst))
+#
+#     print(calc_score(game_grid, revealed_dict))
+#
+#     red_cell = 0
+#     for row in game_grid:
+#         for cell in row:
+#             if cell.get_state() == Node.BOMB:
+#                 red_cell += 1
+#     print("Safely Marked: " + str(red_cell))
+#     print(len(unopened_list))
+
 def base_agent(game_grid, draw):
     safe_cell_lst = []
     revealed_dict = {}
@@ -26,6 +70,7 @@ def base_agent(game_grid, draw):
     unrevealed_lst = []
     revealed_bombs = []
     original_bombs = []
+    safe_cells = []
     for row in game_grid:
         for cell in row:
             unrevealed_lst.append(cell)
@@ -36,16 +81,20 @@ def base_agent(game_grid, draw):
     print("Pre Loop")
     print(len(unrevealed_lst))
     step = 1
-    basic_agent_query(revealed_dict, currCell, draw, unrevealed_lst, revealed_bombs, unopened_list)
+    basic_agent_query(revealed_dict, currCell, draw, unrevealed_lst, revealed_bombs, unopened_list,safe_cells)
 
     while len(unrevealed_lst) != 0:
-        randCell = random.choice(unopened_list)
+        while len(safe_cells) > 0:
+            basic_agent_query(revealed_dict, safe_cells.pop(), draw, unrevealed_lst, revealed_bombs, unopened_list,safe_cells)
+            step += 1
+        if  len(unrevealed_lst) != 0:
+            randCell = random.choice(unopened_list)
         if randCell not in revealed_dict:
             print("Query number: "+str(step))
-            basic_agent_query(revealed_dict, randCell, draw, unrevealed_lst, revealed_bombs, unopened_list)
+            basic_agent_query(revealed_dict, randCell, draw, unrevealed_lst, revealed_bombs, unopened_list,safe_cells)
             step += 1
-            #time.sleep(1.5)
     print("Post Loop")
+
     print(len(unrevealed_lst))
 
     print(calc_score(game_grid, revealed_dict))
@@ -57,13 +106,13 @@ def base_agent(game_grid, draw):
                 red_cell += 1
     print("Safely Marked: " + str(red_cell))
     print(len(unopened_list))
-
 # basic query function for basic agent, similar to how it was described on document
 # revealed dict: stores current knowledge/facts agent knows
 # cell: queried cell
 # unreavealed_list : cells that have not been flagged
 # revealed bombs: track number of bombs reveals so far
-def basic_agent_query(revealed_dict, cell, draw , unrevealed_list, revealed_bombs, unopened_list):
+def basic_agent_query(revealed_dict, cell, draw , unrevealed_list, revealed_bombs, unopened_list,safecells):
+
     if not cell.is_safe():
         cell.flag_as_stepped()
         revealed_dict[cell] = 1
@@ -97,12 +146,12 @@ def basic_agent_query(revealed_dict, cell, draw , unrevealed_list, revealed_bomb
 
         else:
             hidden_nei_lst.append(c)
-
     #base checks given by document
     if clue == 0:
         for neighbor in hidden_nei_lst: #mark all neighbors as clear
             neighbor.flag_as_clear()
             revealed_dict[neighbor] = 0
+            safecells.append(neighbor)
             if neighbor in unrevealed_list:
                 unrevealed_list.remove(neighbor)
             draw()
@@ -128,6 +177,7 @@ def basic_agent_query(revealed_dict, cell, draw , unrevealed_list, revealed_bomb
             draw()
     elif ((len(neighbors) - clue) - len(revealed_cleared_nei_lst)) == len(hidden_nei_lst):
         for c in hidden_nei_lst: #mark all neighbors as bomb
+            safecells.append(c)
             c.flag_as_clear()
             revealed_dict[c] = 0
             if c in unrevealed_list:
@@ -329,9 +379,9 @@ def driver2(grid, total_bombs, dim, draw):
                         if indi == 1:
                             print("Contradiction c1 at: " + str(least_involved_cell))
                             safe_cells.append(id_cell_dict[least_involved_cell])
-                            ticker =\
-                                0
+                            ticker = 0
                             indi = 0
+
         if len(hidden_cells) > 0 and len(safe_cells) <= 0:
             randcell = id_cell_dict[hidden_cells[(random.randrange(len(hidden_cells)))]]
             # base_agent_query(revealed_dict, randcell, draw, revealed_bombs, safe_cells, explored, hidden_cells)
