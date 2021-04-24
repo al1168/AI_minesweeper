@@ -122,6 +122,8 @@ def reset(grid):
                 continue
             cell.state = Node.CLEAR
 
+
+
 #main function for running the program
 def main(win, width, dimension, num_bombs):
     dim = dimension
@@ -146,16 +148,20 @@ def main(win, width, dimension, num_bombs):
                 if event.key == ord('a'):
                     Agents.driver2(game_grid, num_bombs, dim, lambda: draw(win, actual_grid, dim, width))
                 if event.key == ord('b'):
-                    Agents.base_agent(game_grid,lambda: draw(win, actual_grid, dim, width))
+                    Agents.base_agent(game_grid, lambda: draw(win, actual_grid, dim, width))
                 if event.key == pygame.K_RETURN:
                     reset(game_grid)
+
+
+
     pygame.quit()
 
 if __name__ == '__main__':
-    # dimension = int(sys.argv[1])
-    # num_bombs = float(sys.argv[2])
-    dimension = 10
-    num_bombs = 2
+    dimension = int(sys.argv[1])
+    density = float(sys.argv[2])
+    num_bombs = (dimension*dimension) * density
+    #dimension = 10
+    #num_bombs = 2
 
     if num_bombs > dimension * dimension:
         print("Too many bombs")

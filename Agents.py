@@ -104,8 +104,11 @@ def base_agent(game_grid, draw):
         for cell in row:
             if cell.get_state() == Node.BOMB:
                 red_cell += 1
+
+    print("Basic Agent:")
     print("Safely Marked: " + str(red_cell))
     print(len(unopened_list))
+
 # basic query function for basic agent, similar to how it was described on document
 # revealed dict: stores current knowledge/facts agent knows
 # cell: queried cell
@@ -405,6 +408,7 @@ def driver2(grid, total_bombs, dim, draw):
         for cell in row:
             if cell.get_state() == Node.BOMB:
                 red_cell += 1
+    print("Improved Agent:")
     print("Safely Marked: " + str(red_cell))
 
     return
